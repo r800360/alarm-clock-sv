@@ -1,13 +1,20 @@
 # Alarm clock (conventional or decimal time, optional decimal calendar): lint, simulation, formal proofs, synthesis.
-# Tools: Verilator >= 5, Icarus Verilog >= 12, Yosys >= 0.30 (with yosys-abc).
+# Toolchain: Icarus Verilog, Verilator, Yosys + yosys-abc (exact versions in scripts/install-tools.sh).
 
 RTL := rtl/alarm_clock.sv
 TB  := tb/tb_alarm_clock.sv
 RUN := bash scripts/run_sim.sh
 
-.PHONY: all lint sim sim-icarus sim-verilator long formal synth clean
+.PHONY: all ci full summary lint sim sim-icarus sim-verilator long formal synth clean
 
 all: lint sim
+
+# CI entry points (.github/workflows): `make ci` runs on every push, `make full` adds the four-year run
+ci: lint sim formal synth summary
+full: lint sim formal synth long summary
+
+summary:
+	@bash scripts/summary.sh > /dev/null && echo "wrote build/SUMMARY.md"
 
 lint:
 	verilator --lint-only -Wall --top-module alarm_clock $(RTL)
